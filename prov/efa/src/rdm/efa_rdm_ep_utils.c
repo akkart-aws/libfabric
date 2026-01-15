@@ -538,10 +538,71 @@ void efa_rdm_ep_record_tx_op_completed(struct efa_rdm_ep *ep, struct efa_rdm_pke
  */
 void efa_rdm_ep_queue_rnr_pkt(struct efa_rdm_ep *ep, struct efa_rdm_pke *pkt_entry)
 {
+	static __thread uint64_t rnr_count = 0;
+	static __thread uint64_t last_log_count = 0;
 	static const int random_min_timeout = 40;
 	static const int random_max_timeout = 120;
 	struct efa_rdm_peer *peer;
 	struct efa_rdm_ope *ope = pkt_entry->ope;
+
+	rnr_count++;
+
+	/* Log first RNR and every 10,000th RNR to avoid excessive logging */
+	if (rnr_count == 1 || (rnr_count - last_log_count) >= 10000) {
+		const char *op_str = "NONE";
+		size_t len = 0;
+		void *ctx = NULL;
+
+		if (ope) {
+			len = ope->total_len;
+			ctx = ope->cq_entry.op_context;
+			switch (ope->op) {
+			case ofi_op_write:
+				op_str = "WRITE";
+				break;
+			case ofi_op_write_async:
+				op_str = "WRITE_ASYNC";
+				break;
+			case ofi_op_msg:
+				op_str = "SEND";
+				break;
+			case ofi_op_tagged:
+				op_str = "TAGGED";
+				break;
+			case ofi_op_read_req:
+				op_str = "READ_REQ";
+				break;
+			case ofi_op_read_rsp:
+				op_str = "READ_RSP";
+				break;
+			case ofi_op_read_async:
+				op_str = "READ_ASYNC";
+				break;
+			case ofi_op_atomic:
+				op_str = "ATOMIC";
+				break;
+			case ofi_op_atomic_fetch:
+				op_str = "ATOMIC_FETCH";
+				break;
+			case ofi_op_atomic_compare:
+				op_str = "ATOMIC_CMP";
+				break;
+			default:
+				op_str = "OTHER";
+				break;
+			}
+		}
+
+		peer = pkt_entry->peer;
+		EFA_WARN(FI_LOG_EP_DATA,
+			 "[RNR] #%lu: op=%s len=%zu ctx=%p peer=%lu backoff=%ld us queued=%d\n",
+			 rnr_count, op_str, len, ctx,
+			 peer ? peer->conn->fi_addr : 0,
+			 peer ? peer->rnr_backoff_wait_time : 0,
+			 peer ? peer->rnr_queued_pkt_cnt : 0);
+
+		last_log_count = rnr_count;
+	}
 
 #if ENABLE_DEBUG
 	dlist_remove(&pkt_entry->dbg_entry);
