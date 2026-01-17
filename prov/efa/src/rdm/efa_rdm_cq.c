@@ -138,6 +138,11 @@ static void efa_rdm_cq_proc_ibv_recv_rdma_with_imm_completion(
 		 */
 		assert(pkt_entry);
 		ep->efa_rx_pkts_posted--;
+		efa_rdm_tracepoint(rx_buffer_state,
+			ep->efa_rx_pkts_posted,
+			ep->efa_rx_pkts_to_post,
+			ep->efa_rx_pkts_held,
+			efa_rdm_ep_get_rx_pool_size(ep));
 		efa_rdm_cq_increment_pkt_entry_gen(pkt_entry);
 		efa_rdm_pke_release_rx(pkt_entry);
 	}
@@ -435,6 +440,11 @@ static void efa_rdm_cq_handle_recv_completion(struct efa_ibv_cq *ibv_cq, struct 
 	} else {
 		assert(ep->efa_rx_pkts_posted > 0);
 		ep->efa_rx_pkts_posted--;
+		efa_rdm_tracepoint(rx_buffer_state,
+			ep->efa_rx_pkts_posted,
+			ep->efa_rx_pkts_to_post,
+			ep->efa_rx_pkts_held,
+			efa_rdm_ep_get_rx_pool_size(ep));
 	}
 
 	pkt_entry->pkt_size = efa_ibv_cq_wc_read_byte_len(ibv_cq);
@@ -646,6 +656,11 @@ enum ibv_wc_status efa_rdm_cq_process_wc_closing_ep(struct efa_ibv_cq *cq, struc
 			} else {
 				assert(ep->efa_rx_pkts_posted > 0);
 				ep->efa_rx_pkts_posted--;
+				efa_rdm_tracepoint(rx_buffer_state,
+					ep->efa_rx_pkts_posted,
+					ep->efa_rx_pkts_to_post,
+					ep->efa_rx_pkts_held,
+					efa_rdm_ep_get_rx_pool_size(ep));
 			}
 			efa_rdm_cq_increment_pkt_entry_gen(pkt_entry);
 			efa_rdm_pke_release_rx(pkt_entry);

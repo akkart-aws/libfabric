@@ -181,6 +181,11 @@ void efa_rdm_pke_release_rx(struct efa_rdm_pke *pkt_entry)
 
 	if (pkt_entry->alloc_type == EFA_RDM_PKE_FROM_EFA_RX_POOL) {
 		ep->efa_rx_pkts_to_post++;
+		efa_rdm_tracepoint(rx_buffer_state,
+			ep->efa_rx_pkts_posted,
+			ep->efa_rx_pkts_to_post,
+			ep->efa_rx_pkts_held,
+			efa_rdm_ep_get_rx_pool_size(ep));
 	} else if (pkt_entry->alloc_type == EFA_RDM_PKE_FROM_READ_COPY_POOL) {
 		assert(ep->rx_readcopy_pkt_pool_used > 0);
 		ep->rx_readcopy_pkt_pool_used--;

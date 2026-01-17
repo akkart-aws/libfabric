@@ -911,13 +911,29 @@ ssize_t efa_rdm_ep_post_queued_pkts(struct efa_rdm_ep *ep,
 int efa_rdm_ep_bulk_post_internal_rx_pkts(struct efa_rdm_ep *ep)
 {
 	int i, err;
+	int rx_pool_size = efa_rdm_ep_get_rx_pool_size(ep);
+
+	/* Trace buffer state before refill check */
+	efa_rdm_tracepoint(rx_buffer_state,
+		ep->efa_rx_pkts_posted,
+		ep->efa_rx_pkts_to_post,
+		ep->efa_rx_pkts_held,
+		rx_pool_size);
 
 	/**
 	 * When efa_env.internal_rx_refill_threshold > efa_rdm_ep_get_rx_pool_size(ep),
 	 * we should always refill when the pool is empty.
 	 */
-	if (ep->efa_rx_pkts_to_post < MIN(efa_env.internal_rx_refill_threshold, efa_rdm_ep_get_rx_pool_size(ep)))
+	if (ep->efa_rx_pkts_to_post < MIN(efa_env.internal_rx_refill_threshold, rx_pool_size))
 		return 0;
+
+	/* Trace when refill is triggered */
+	efa_rdm_tracepoint(rx_buffer_refill_triggered,
+		ep->efa_rx_pkts_posted,
+		ep->efa_rx_pkts_to_post,
+		ep->efa_rx_pkts_held,
+		rx_pool_size,
+		efa_env.internal_rx_refill_threshold);
 
 	assert(ep->efa_rx_pkts_to_post + ep->efa_rx_pkts_posted <= ep->efa_max_outstanding_rx_ops);
 	for (i = 0; i < ep->efa_rx_pkts_to_post; ++i) {
@@ -946,6 +962,14 @@ int efa_rdm_ep_bulk_post_internal_rx_pkts(struct efa_rdm_ep *ep)
 
 	ep->efa_rx_pkts_posted += ep->efa_rx_pkts_to_post;
 	ep->efa_rx_pkts_to_post = 0;
+
+	/* Trace buffer state after posting */
+	efa_rdm_tracepoint(rx_buffer_state,
+		ep->efa_rx_pkts_posted,
+		ep->efa_rx_pkts_to_post,
+		ep->efa_rx_pkts_held,
+		efa_rdm_ep_get_rx_pool_size(ep));
+
 	return 0;
 }
 

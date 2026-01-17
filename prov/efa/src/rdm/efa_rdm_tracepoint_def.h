@@ -271,6 +271,38 @@ LTTNG_UST_TRACEPOINT_EVENT(EFA_RDM_TP_PROV,
 	LTTNG_UST_TP_FIELDS(PKE_FIELDS))
 LTTNG_UST_TRACEPOINT_LOGLEVEL(EFA_RDM_TP_PROV, handshake_recv_completion, LTTNG_UST_TRACEPOINT_LOGLEVEL_INFO)
 
+/* RX buffer tracking tracepoints */
+#define RX_BUFFER_ARGS \
+	int, efa_rx_pkts_posted, \
+	int, efa_rx_pkts_to_post, \
+	int, efa_rx_pkts_held, \
+	int, rx_pool_size
+
+#define RX_BUFFER_FIELDS \
+	lttng_ust_field_integer(int, efa_rx_pkts_posted, efa_rx_pkts_posted) \
+	lttng_ust_field_integer(int, efa_rx_pkts_to_post, efa_rx_pkts_to_post) \
+	lttng_ust_field_integer(int, efa_rx_pkts_held, efa_rx_pkts_held) \
+	lttng_ust_field_integer(int, rx_pool_size, rx_pool_size)
+
+LTTNG_UST_TRACEPOINT_EVENT(EFA_RDM_TP_PROV,
+	rx_buffer_state,
+	LTTNG_UST_TP_ARGS(RX_BUFFER_ARGS),
+	LTTNG_UST_TP_FIELDS(RX_BUFFER_FIELDS))
+LTTNG_UST_TRACEPOINT_LOGLEVEL(EFA_RDM_TP_PROV, rx_buffer_state, LTTNG_UST_TRACEPOINT_LOGLEVEL_INFO)
+
+/* Refill trigger event */
+LTTNG_UST_TRACEPOINT_EVENT(EFA_RDM_TP_PROV,
+	rx_buffer_refill_triggered,
+	LTTNG_UST_TP_ARGS(
+		RX_BUFFER_ARGS,
+		int, refill_threshold
+	),
+	LTTNG_UST_TP_FIELDS(
+		RX_BUFFER_FIELDS
+		lttng_ust_field_integer(int, refill_threshold, refill_threshold)
+	))
+LTTNG_UST_TRACEPOINT_LOGLEVEL(EFA_RDM_TP_PROV, rx_buffer_refill_triggered, LTTNG_UST_TRACEPOINT_LOGLEVEL_INFO)
+
 #endif /* _EFA_RDM_TP_DEF_H */
 
 #include <lttng/tracepoint-event.h>
