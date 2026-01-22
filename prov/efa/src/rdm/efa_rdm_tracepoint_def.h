@@ -303,6 +303,21 @@ LTTNG_UST_TRACEPOINT_EVENT(EFA_RDM_TP_PROV,
 	))
 LTTNG_UST_TRACEPOINT_LOGLEVEL(EFA_RDM_TP_PROV, rx_buffer_refill_triggered, LTTNG_UST_TRACEPOINT_LOGLEVEL_INFO)
 
+/* CQ read tracepoint */
+#define CQ_READ_ARGS \
+	size_t, cq_read_count_requested, \
+	ssize_t, cq_read_count_completed
+
+#define CQ_READ_FIELDS \
+	lttng_ust_field_integer(size_t, cq_read_count_requested, cq_read_count_requested) \
+	lttng_ust_field_integer(ssize_t, cq_read_count_completed, cq_read_count_completed)
+
+LTTNG_UST_TRACEPOINT_EVENT(EFA_RDM_TP_PROV,
+	cq_read,
+	LTTNG_UST_TP_ARGS(CQ_READ_ARGS),
+	LTTNG_UST_TP_FIELDS(CQ_READ_FIELDS))
+LTTNG_UST_TRACEPOINT_LOGLEVEL(EFA_RDM_TP_PROV, cq_read, LTTNG_UST_TRACEPOINT_LOGLEVEL_INFO)
+
 #endif /* _EFA_RDM_TP_DEF_H */
 
 #include <lttng/tracepoint-event.h>

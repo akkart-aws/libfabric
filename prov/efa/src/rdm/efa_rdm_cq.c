@@ -862,7 +862,7 @@ static ssize_t efa_rdm_cq_readfrom(struct fid_cq *cq_fid, void *buf, size_t coun
 	if (cq->shm_cq) {
 		fi_cq_read(cq->shm_cq, NULL, 0);
 
-		/* 
+		/*
 		 * fi_cq_read(cq->shm_cq, NULL, 0) will progress shm ep and write
 		 * completion to efa. Use ofi_cq_read_entries to get the number of
 		 * shm completions without progressing efa ep again.
@@ -877,6 +877,10 @@ static ssize_t efa_rdm_cq_readfrom(struct fid_cq *cq_fid, void *buf, size_t coun
 
 out:
 	ofi_genlock_unlock(&domain->srx_lock);
+
+#if HAVE_LTTNG
+	efa_rdm_tracepoint(cq_read, count, ret);
+#endif
 
 	return ret;
 }
